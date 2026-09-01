@@ -21,7 +21,7 @@ Software pessoal de treinamento de pilotagem para simuladores de corrida (foco i
 | Training Engine | RF-301 a RF-307 | Implementada e testada |
 | Evaluation Engine | RF-401 a RF-405 | Implementada e testada |
 | Coach Engine | RF-501 a RF-505 | Implementada e testada |
-| Persistence | RF-6xx | Não iniciada |
+| Persistence | RF-601 a RF-605 | Implementada e testada |
 | Visualization & Replay | RF-7xx | Não iniciada |
 | UI | RF-8xx | Não iniciada |
 

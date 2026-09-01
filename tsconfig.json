@@ -13,6 +13,7 @@
     "noFallthroughCasesInSwitch": true,
 
     "verbatimModuleSyntax": true,
+    "esModuleInterop": true,
     "isolatedModules": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,

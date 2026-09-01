@@ -31,3 +31,7 @@ obj/
 data/
 *.db
 *.sqlite
+
+# SQLite (WAL)
+*.db-wal
+*.db-shm
