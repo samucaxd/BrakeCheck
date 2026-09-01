@@ -56,7 +56,7 @@ Skills ficam em `.claude/skills/<nome>/SKILL.md`. Consulte a skill correspondent
 | Skill | Camada / Propósito | Status |
 |---|---|---|
 | `prd-validator` | Audita completude de PRDs (não é específica do Brake Check, é reutilizável) | ✅ Criada |
-| `brake-check-foundations` | Visão geral, contratos entre camadas, decisões de stack | ⏳ Pendente |
+| `brake-check-foundations` | Visão geral, contratos entre camadas, decisões de stack | ✅ Criada |
 | `g29-input-layer` | Detecção e leitura do G29 (Device Layer + Input Processing) | ⏳ Pendente |
 | `telemetry-engine` | Captura temporal + métricas derivadas | ⏳ Pendente |
 | `braking-training-engine` | Trilha de exercícios de frenagem + execução | ⏳ Pendente |

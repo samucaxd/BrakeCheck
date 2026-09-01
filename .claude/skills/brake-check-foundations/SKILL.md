@@ -88,9 +88,25 @@ Um exemplo concreto do motivo dessa regra existir, encontrado durante a pesquisa
 
 ## 4. Decisões de Stack
 
-**Status: aguardando decisão do usuário.** Não implemente código de aplicação em nenhuma stack até esta seção ser atualizada com uma decisão final registrada abaixo. Se esta seção ainda mostrar as opções em aberto quando você for implementar algo, pare e pergunte antes de assumir uma stack.
+**Status: decidido.** Stack escolhida: **Opção B — Node.js/Electron**.
 
-Requisito que guia a escolha: app desktop Windows-only, leitura de um controlador USB (G29) com baixa latência, processamento de dados em tempo real, persistência 100% local, e UI dark-mode estilo simulador (RNF-01 a RNF-05, RF-801).
+Requisito que guiou a escolha: app desktop Windows-only, leitura de um controlador USB (G29) com baixa latência, processamento de dados em tempo real, persistência 100% local, e UI dark-mode estilo simulador (RNF-01 a RNF-05, RF-801).
+
+### Decisão final registrada
+
+| Peça | Escolha | Papel |
+|---|---|---|
+| Runtime/app shell | Electron | Empacota o processo de dados (main) e a UI (renderer) como app desktop Windows |
+| Device/Input Layer (G29) | `logitech-g29` (npm, baseado em `node-hid`) | Já trata o "destrave" de modo restrito do G29 (ver seção 3), expõe volante/pedais/botões/shifter normalizados |
+| UI | React + CSS (ex.: Tailwind ou CSS puro) | Tema dark motorsport, hierarquia visual (RF-801/RF-803) |
+| Gráficos de telemetria/replay | uPlot ou Chart.js — decidir na skill `telemetry-visualization-replay` | Gráficos Brake/Throttle/Steering × Tempo, overlay, replay (RF-701 a RF-707) |
+| Persistência | `better-sqlite3` (SQLite síncrono) | Sessões, tentativas, Skill Profile — tudo local (RNF-05, RF-601 a RF-605) |
+
+**Justificativa:** reduz o maior risco técnico do projeto (leitura confiável do G29) usando uma biblioteca já específica para este hardware, e é o caminho mais rápido para acertar o visual "software profissional de simulador" exigido pelo RF-801, por ser 100% CSS. O ponto de atenção arquitetural herdado dessa escolha (documentado como contra na opção abaixo) é desenhar o loop de amostragem — Device Layer + Input Processing — para rodar no processo `main` do Electron com um hot path enxuto, empurrando cálculo pesado (Telemetry Engine em diante) para fora do caminho crítico de leitura, e validar a latência real (RNF-04, TC-901) cedo, antes de assumir que o orçamento de "dezenas de milissegundos" está garantido só por ter escolhido essa stack.
+
+Esta decisão vale para novas skills de camada (`g29-input-layer`, `telemetry-visualization-replay`, `simulator-ui-design` etc.) — elas devem assumir Electron/Node/React/SQLite como stack já decidida, não reabrir essa escolha.
+
+### Opções consideradas e não escolhidas (mantidas como referência)
 
 ### Opção A — C#/.NET 8 (WPF) + HidSharp + SQLite
 
@@ -100,14 +116,6 @@ Requisito que guia a escolha: app desktop Windows-only, leitura de um controlado
 - **Prós:** uma linguagem só do início ao fim (hardware, lógica e UI); integração nativa forte com Windows; modelo de threads maduro para um loop de amostragem dedicado; precedente real na comunidade de sim racing (dashboards como o SimHub são C#); empacotamento simples para uso pessoal em uma máquina.
 - **Contras:** conseguir o visual "software profissional de simulador" em WPF exige mais trabalho manual de estilização que uma UI baseada em web/CSS; nenhuma biblioteca pronta específica de G29 foi encontrada em C# — o trecho de leitura HID do wheel seria o mais "greenfield" das três opções, exigindo mais validação técnica própria antes de implementar (reforça a disciplina da seção 3).
 
-### Opção B — Node.js/Electron + `logitech-g29` (node-hid) + SQLite + React
-
-- **Acesso ao G29:** pacote `logitech-g29` (npm, baseado em `node-hid`) — já é específico para este hardware: já trata o "destrave" de modo restrito, já expõe volante/pedais/botões/shifter e até force feedback.
-- **UI:** Electron com React (ou Vue), tema dark via CSS/Tailwind, gráficos de telemetria em tempo real via uPlot ou Chart.js.
-- **Persistência:** SQLite via `better-sqlite3` (síncrono e rápido).
-- **Prós:** é a única opção com um driver pronto e específico para exatamente este hardware — reduz o maior risco técnico do projeto (leitura confiável do G29) antes mesmo de começar; caminho mais rápido para acertar o visual dark motorsport, por ser 100% CSS; ecossistema de gráficos em tempo real muito maduro.
-- **Contras:** Electron adiciona Chromium + runtime Node (mais peso e mais partes móveis que uma app nativa); o loop de amostragem roda no event loop single-thread do Node — provavelmente cabe no orçamento de latência do RNF-04 ("dezenas de milissegundos fim-a-fim") se o callback de leitura do HID ficar enxuto e o processamento pesado for feito fora do hot path, mas é menos determinístico que uma opção compilada sob carga; existe uma camada extra de IPC entre processo principal (hardware + dados) e a UI que precisa ser desenhada com cuidado para não perder/atrasar amostras.
-
 ### Opção C — Python (PySide6) + `g29py`/`hidapi` + SQLite + pyqtgraph
 
 - **Acesso ao G29:** pacote `g29py` (PyPI), que já expõe volante/acelerador/freio normalizados (-1 a 1); alternativa de fallback é `hidapi` bruto se o pacote se mostrar incompleto.
@@ -116,6 +124,4 @@ Requisito que guia a escolha: app desktop Windows-only, leitura de um controlado
 - **Prós:** iteração solo mais rápida (ecossistema grande, sintaxe simples, menos boilerplate); já existe um pacote específico de G29 em Python, reduzindo o risco de hardware (embora aparentemente menos maduro/usado que o equivalente em Node); `pyqtgraph` é literalmente feito para o tipo de gráfico que este projeto precisa; SQLite sem dependência extra.
 - **Contras:** o GIL e o overhead do interpretador tornam o loop de amostragem menos determinístico que opções compiladas — exige rodar a leitura em thread dedicada e manter o hot path mínimo; empacotar como `.exe` distribuível (PyInstaller) adiciona lentidão de startup e um binário maior; menos segurança de tipos/refatoração que C# para um projeto que vai crescer por 8 camadas ao longo do tempo; o pacote `g29py` é aparentemente menos maduro/testado que o `logitech-g29` de Node — precisaria de validação técnica extra antes de confiar nele (seção 3).
 
-### Como decidir
-
-Nenhuma das três é tecnicamente inviável — a diferença está em onde cada uma concentra risco e esforço: Opção A concentra o risco na leitura do HID (sem lib pronta) mas dá o controle mais nativo; Opção B reduz o risco de hardware ao máximo mas assume o custo arquitetural do Electron; Opção C é a mais rápida de prototipar mas com o loop de amostragem menos previsível sob carga. Quando o usuário escolher, registre aqui: a stack escolhida, a justificativa (pode ser só "preferência" — não precisa ser só técnica), e quaisquer bibliotecas específicas já decididas para cada peça (HID, UI, gráficos, persistência).
+Nenhuma das três era tecnicamente inviável — a diferença estava em onde cada uma concentrava risco e esforço: Opção A concentrava o risco na leitura do HID (sem lib pronta); Opção C era a mais rápida de prototipar, mas com o loop de amostragem menos previsível sob carga. A Opção B (escolhida) reduz o risco de hardware ao máximo, assumindo em troca o custo arquitetural do Electron — ver a decisão final registrada acima.
