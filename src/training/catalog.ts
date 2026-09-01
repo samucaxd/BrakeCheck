@@ -48,10 +48,13 @@ const FUNDAMENTOS: Exercise[] = [
       minCoverage: 0.8,
     },
     scoringRules: {
-      subScores: ['controle_pressao'],
-      describes: {
-        controle_pressao: 'Quanto da janela pedida o pedal ficou dentro da faixa-alvo.',
-      },
+      subScores: [
+        {
+          id: 'controle_pressao',
+          describes: 'Quanto da janela pedida o pedal ficou dentro da faixa-alvo.',
+          spec: { formula: 'proportion', metric: 'pressureRangeMs', required: 2500 },
+        },
+      ],
     },
     feedbackFocus: [
       'Se o piloto oscila, entrando e saindo da faixa',
@@ -78,10 +81,13 @@ const FUNDAMENTOS: Exercise[] = [
     metricsUsed: ['brakingEvents.applicationSpeed', 'consistency.applicationSpeed'],
     successCriteria: { kind: 'application_speed_range', range: [150, 350] },
     scoringRules: {
-      subScores: ['aplicacao_inicial'],
-      describes: {
-        aplicacao_inicial: 'Se a taxa de subida do pedal ficou na faixa progressiva.',
-      },
+      subScores: [
+        {
+          id: 'aplicacao_inicial',
+          describes: 'Se a taxa de subida do pedal ficou na faixa progressiva.',
+          spec: { formula: 'target_range', metric: 'applicationSpeed', range: [150, 350] },
+        },
+      ],
     },
     feedbackFocus: [
       'Se a aplicação foi abrupta (acima da faixa)',
@@ -118,11 +124,22 @@ const FUNDAMENTOS: Exercise[] = [
       maxRange: STRAIGHT_LINE_MAX_STEERING_RANGE,
     },
     scoringRules: {
-      subScores: ['aplicacao_inicial', 'consistencia_direcional'],
-      describes: {
-        aplicacao_inicial: 'Qualidade da aplicação inicial do freio.',
-        consistencia_direcional: 'O quanto o volante permaneceu estável durante a frenagem.',
-      },
+      subScores: [
+        {
+          id: 'aplicacao_inicial',
+          describes: 'Qualidade da aplicação inicial do freio.',
+          spec: { formula: 'target_range', metric: 'applicationSpeed', range: [150, 350] },
+        },
+        {
+          id: 'consistencia_direcional',
+          describes: 'O quanto o volante permaneceu estável durante a frenagem.',
+          spec: {
+            formula: 'target_range',
+            metric: 'steeringRangeDuringBraking',
+            range: [0, STRAIGHT_LINE_MAX_STEERING_RANGE],
+          },
+        },
+      ],
     },
     feedbackFocus: [
       'Se houve correção de volante perceptível durante a frenagem',
@@ -151,10 +168,13 @@ const FUNDAMENTOS: Exercise[] = [
       minCoverage: 0.85,
     },
     scoringRules: {
-      subScores: ['controle_pressao'],
-      describes: {
-        controle_pressao: 'Cobertura da janela dentro de uma faixa mais estreita que a do exercício 1.',
-      },
+      subScores: [
+        {
+          id: 'controle_pressao',
+          describes: 'Cobertura da janela dentro de uma faixa mais estreita que a do exercício 1.',
+          spec: { formula: 'proportion', metric: 'pressureRangeMs', required: 3500 },
+        },
+      ],
     },
     feedbackFocus: [
       'Padrão de oscilação: se existe',
@@ -184,10 +204,17 @@ const FUNDAMENTOS: Exercise[] = [
       maxCoefficientOfVariation: 0.15,
     },
     scoringRules: {
-      subScores: ['consistencia'],
-      describes: {
-        consistencia: 'Variabilidade entre as tentativas do bloco nas métricas-chave.',
-      },
+      subScores: [
+        {
+          id: 'consistencia',
+          describes: 'Variabilidade entre as tentativas do bloco nas métricas-chave.',
+          spec: {
+            formula: 'consistency',
+            key: 'applicationSpeed',
+            maxCoefficientOfVariation: 0.15,
+          },
+        },
+      ],
     },
     feedbackFocus: [
       'Qual das tentativas mais destoou das demais',
@@ -217,10 +244,18 @@ const FUNDAMENTOS: Exercise[] = [
     usesBrakingMarker: true,
     successCriteria: { kind: 'reaction_delta', maxDeltaMs: 400 },
     scoringRules: {
-      subScores: ['ponto_frenagem'],
-      describes: {
-        ponto_frenagem: 'Atraso entre o marcador e o início efetivo da frenagem.',
-      },
+      subScores: [
+        {
+          id: 'ponto_frenagem',
+          describes: 'Atraso entre o marcador e o início efetivo da frenagem.',
+          spec: {
+            formula: 'target_value',
+            metric: 'reactionDelta',
+            target: 0,
+            maxDeviation: 400,
+          },
+        },
+      ],
     },
     feedbackFocus: [
       'Se o piloto está reagindo tarde (atraso alto)',
@@ -251,11 +286,18 @@ const INTERMEDIARIO: Exercise[] = [
     pressureBand: [85, 95],
     successCriteria: { kind: 'peak_sustained', band: [85, 95], minEventCoverage: 0.6 },
     scoringRules: {
-      subScores: ['aplicacao_inicial', 'controle_pressao'],
-      describes: {
-        aplicacao_inicial: 'Como o piloto chegou até a faixa de threshold.',
-        controle_pressao: 'Quanto do evento foi sustentado dentro da faixa.',
-      },
+      subScores: [
+        {
+          id: 'aplicacao_inicial',
+          describes: 'Como o piloto chegou até a faixa de threshold.',
+          spec: { formula: 'target_range', metric: 'peakValue', range: [85, 95] },
+        },
+        {
+          id: 'controle_pressao',
+          describes: 'Quanto do evento foi sustentado dentro da faixa.',
+          spec: { formula: 'proportion', metric: 'eventBandCoverage', required: 1 },
+        },
+      ],
     },
     feedbackFocus: [
       'Se o piloto está frenando abaixo do limite (conservador)',
@@ -276,10 +318,13 @@ const INTERMEDIARIO: Exercise[] = [
     metricsUsed: ['brakingEvents.peakValue', 'brakingEvents.applicationSpeed'],
     successCriteria: { kind: 'peak_and_application', minPeak: 90, minApplicationSpeed: 300 },
     scoringRules: {
-      subScores: ['aplicacao_inicial'],
-      describes: {
-        aplicacao_inicial: 'Se o pico alto foi atingido sem hesitação na subida.',
-      },
+      subScores: [
+        {
+          id: 'aplicacao_inicial',
+          describes: 'Se o pico alto foi atingido sem hesitação na subida.',
+          spec: { formula: 'target_range', metric: 'applicationSpeed', range: [300, 900] },
+        },
+      ],
     },
     feedbackFocus: [
       'Se o piloto hesitou antes de atingir o pico — velocidade de aplicação baixa apesar de pico alto',
@@ -308,10 +353,13 @@ const INTERMEDIARIO: Exercise[] = [
       minCoveragePerSegment: 0.7,
     },
     scoringRules: {
-      subScores: ['controle_pressao'],
-      describes: {
-        controle_pressao: 'Cobertura de cada sub-faixa da sequência.',
-      },
+      subScores: [
+        {
+          id: 'controle_pressao',
+          describes: 'Cobertura de cada sub-faixa da sequência.',
+          spec: { formula: 'proportion', metric: 'worstSubBandCoverage', required: 1 },
+        },
+      ],
     },
     feedbackFocus: ['Em qual transição da sequência o piloto perdeu mais tempo fora da faixa'],
     advanceCondition: { attemptsRequired: 3, outOf: 5, consecutive: false, consistency: [] },
@@ -329,8 +377,13 @@ const INTERMEDIARIO: Exercise[] = [
     metricsUsed: ['brakingEvents.releaseSpeed', 'consistency.releaseSpeed'],
     successCriteria: { kind: 'release_speed_range', range: [100, 250] },
     scoringRules: {
-      subScores: ['liberacao'],
-      describes: { liberacao: 'Se a taxa de descida do pedal ficou na faixa progressiva.' },
+      subScores: [
+        {
+          id: 'liberacao',
+          describes: 'Se a taxa de descida do pedal ficou na faixa progressiva.',
+          spec: { formula: 'target_range', metric: 'releaseSpeed', range: [100, 250] },
+        },
+      ],
     },
     feedbackFocus: [
       'Se a liberação foi abrupta (acima da faixa)',
@@ -366,11 +419,23 @@ const INTERMEDIARIO: Exercise[] = [
       maxMeanDeviation: 10,
     },
     scoringRules: {
-      subScores: ['controle_pressao', 'liberacao'],
-      describes: {
-        controle_pressao: 'Aderência ao perfil-alvo ao longo do evento.',
-        liberacao: 'Suavidade da redução de pressão.',
-      },
+      subScores: [
+        {
+          id: 'controle_pressao',
+          describes: 'Aderência ao perfil-alvo ao longo do evento.',
+          spec: {
+            formula: 'target_value',
+            metric: 'profileDeviation',
+            target: 0,
+            maxDeviation: 10,
+          },
+        },
+        {
+          id: 'liberacao',
+          describes: 'Suavidade da redução de pressão.',
+          spec: { formula: 'target_range', metric: 'releaseSpeed', range: [100, 250] },
+        },
+      ],
     },
     feedbackFocus: ['Em que fase da frenagem — início, meio ou fim — o desvio do perfil foi maior'],
     advanceCondition: { attemptsRequired: 3, outOf: 5, consecutive: false, consistency: [] },
@@ -393,11 +458,23 @@ const AVANCADO: Exercise[] = [
     metricsUsed: ['exercise.brakeSteeringOverlap', 'brakingEvents.releaseSpeed'],
     successCriteria: { kind: 'trail_overlap', minOverlapMs: 200, releaseRange: [100, 250] },
     scoringRules: {
-      subScores: ['liberacao', 'consistencia_direcional'],
-      describes: {
-        liberacao: 'Se a liberação seguiu progressiva mesmo com o volante entrando.',
-        consistencia_direcional: 'Sobreposição entre freio residual e esterçamento.',
-      },
+      subScores: [
+        {
+          id: 'liberacao',
+          describes: 'Se a liberação seguiu progressiva mesmo com o volante entrando.',
+          spec: { formula: 'target_range', metric: 'releaseSpeed', range: [100, 250] },
+        },
+        {
+          id: 'consistencia_direcional',
+          describes: 'Sobreposição entre freio residual e esterçamento.',
+          spec: {
+            formula: 'target_value',
+            metric: 'brakeSteeringOverlap',
+            target: 200,
+            maxDeviation: 200,
+          },
+        },
+      ],
     },
     feedbackFocus: [
       'Se o piloto solta o freio totalmente antes de esterçar (overlap zero)',
@@ -420,10 +497,13 @@ const AVANCADO: Exercise[] = [
     metricsUsed: ['brakingEvents.releaseSpeed', 'consistency.releaseSpeed'],
     successCriteria: { kind: 'release_speed_range', range: [100, 250] },
     scoringRules: {
-      subScores: ['liberacao'],
-      describes: {
-        liberacao: 'Suavidade da liberação com o volante em movimento.',
-      },
+      subScores: [
+        {
+          id: 'liberacao',
+          describes: 'Suavidade da liberação com o volante em movimento.',
+          spec: { formula: 'target_range', metric: 'releaseSpeed', range: [100, 250] },
+        },
+      ],
     },
     feedbackFocus: [
       'Se a presença de esterçamento simultâneo piora a suavidade da liberação em relação ao exercício de liberação em linha reta',
@@ -445,11 +525,23 @@ const AVANCADO: Exercise[] = [
     metricsUsed: ['brakingEvents.applicationSpeed', 'exercise.stabilizationInterval'],
     successCriteria: { kind: 'stabilization_interval', minIntervalMs: 150 },
     scoringRules: {
-      subScores: ['aplicacao_inicial', 'consistencia_direcional'],
-      describes: {
-        aplicacao_inicial: 'Se a aplicação não foi súbita demais para o carro assentar.',
-        consistencia_direcional: 'Timing entre o pico de freio e o esterçamento.',
-      },
+      subScores: [
+        {
+          id: 'aplicacao_inicial',
+          describes: 'Se a aplicação não foi súbita demais para o carro assentar.',
+          spec: { formula: 'target_range', metric: 'applicationSpeed', range: [150, 350] },
+        },
+        {
+          id: 'consistencia_direcional',
+          describes: 'Timing entre o pico de freio e o esterçamento.',
+          spec: {
+            formula: 'target_value',
+            metric: 'stabilizationInterval',
+            target: 150,
+            maxDeviation: 150,
+          },
+        },
+      ],
     },
     feedbackFocus: ['Se o piloto está esterçando antes do carro assentar — intervalo curto demais'],
     advanceCondition: { attemptsRequired: 3, outOf: 5, consecutive: false, consistency: [] },
@@ -469,11 +561,27 @@ const AVANCADO: Exercise[] = [
     metricsUsed: ['exercise.brakeSteeringCorrelation', 'exercise.brakeSteeringOverlap'],
     successCriteria: { kind: 'brake_steering_correlation', maxCorrelation: -0.6 },
     scoringRules: {
-      subScores: ['liberacao', 'consistencia_direcional'],
-      describes: {
-        liberacao: 'Se o freio residual cai conforme o ângulo cresce.',
-        consistencia_direcional: 'Coordenação entre pedal e volante na fase de overlap.',
-      },
+      subScores: [
+        {
+          id: 'liberacao',
+          describes: 'Se o freio residual cai conforme o ângulo cresce.',
+          spec: {
+            formula: 'correlation',
+            metric: 'brakeSteeringCorrelation',
+            minAbsolute: 0.6,
+          },
+        },
+        {
+          id: 'consistencia_direcional',
+          describes: 'Coordenação entre pedal e volante na fase de overlap.',
+          spec: {
+            formula: 'target_value',
+            metric: 'brakeSteeringOverlap',
+            target: 200,
+            maxDeviation: 200,
+          },
+        },
+      ],
     },
     feedbackFocus: [
       'Se o piloto mantém freio residual constante independente do ângulo, em vez de reduzir proporcionalmente',
@@ -504,12 +612,32 @@ const AVANCADO: Exercise[] = [
       maxCorrelation: -0.6,
     },
     scoringRules: {
-      subScores: ['aplicacao_inicial', 'liberacao', 'consistencia_direcional'],
-      describes: {
-        aplicacao_inicial: 'Fase de frenagem da sequência.',
-        liberacao: 'Fase de trail braking.',
-        consistencia_direcional: 'Coordenação na retomada do acelerador.',
-      },
+      subScores: [
+        {
+          id: 'aplicacao_inicial',
+          describes: 'Fase de frenagem da sequência.',
+          spec: { formula: 'target_range', metric: 'applicationSpeed', range: [150, 350] },
+        },
+        {
+          id: 'liberacao',
+          describes: 'Fase de trail braking.',
+          spec: {
+            formula: 'correlation',
+            metric: 'brakeSteeringCorrelation',
+            minAbsolute: 0.6,
+          },
+        },
+        {
+          id: 'consistencia_direcional',
+          describes: 'Coordenação na retomada do acelerador.',
+          spec: {
+            formula: 'target_value',
+            metric: 'brakeThrottleOverlap',
+            target: 0,
+            maxDeviation: 100,
+          },
+        },
+      ],
     },
     feedbackFocus: [
       'Qual das três fases — frenagem, trail braking ou retomada — está mais fraca nesta tentativa',

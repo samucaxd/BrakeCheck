@@ -166,6 +166,59 @@ export interface AdvanceCondition {
   consistency: readonly ConsistencyRequirement[]
 }
 
+/**
+ * Métricas sobre as quais um sub-score pode ser calculado.
+ *
+ * Resolvidas contra `DerivedMetrics` (telemetria) ou `ExerciseMetrics`
+ * (específicas do exercício).
+ */
+export type ScorableMetric =
+  | 'applicationSpeed'
+  | 'releaseSpeed'
+  | 'peakValue'
+  | 'timeToPeak'
+  | 'brakeMax'
+  | 'pressureRangeMs'
+  | 'eventBandCoverage'
+  | 'worstSubBandCoverage'
+  | 'steeringRangeDuringBraking'
+  | 'reactionDelta'
+  | 'stabilizationInterval'
+  | 'brakeSteeringOverlap'
+  | 'brakeThrottleOverlap'
+  | 'brakeSteeringCorrelation'
+  | 'profileDeviation'
+
+/**
+ * Como um sub-score é calculado.
+ *
+ * As cinco formas correspondem exatamente ao toolkit de `evaluation-scoring-engine`
+ * §1 — a skill é explícita: "não invente uma fórmula nova por exercício, encaixe
+ * no formato que já existe".
+ *
+ * Os **parâmetros** moram aqui, no catálogo, e não na camada de scoring, porque a
+ * mesma skill determina que ela "não redefine limiares, só a fórmula que os
+ * transforma em score".
+ */
+export type SubScoreSpec =
+  /** Dentro da faixa → 100; fora, penalidade proporcional à distância. */
+  | { formula: 'target_range'; metric: ScorableMetric; range: Band }
+  /** `valor / exigido`, saturando em 100. */
+  | { formula: 'proportion'; metric: ScorableMetric; required: number }
+  /** Desvio em relação a um alvo único. */
+  | { formula: 'target_value'; metric: ScorableMetric; target: number; maxDeviation: number }
+  /** `|r| / r_mín`, saturando em 100. */
+  | { formula: 'correlation'; metric: ScorableMetric; minAbsolute: number }
+  /** Penaliza variabilidade entre as tentativas do bloco. */
+  | { formula: 'consistency'; key: ConsistencyKey; maxCoefficientOfVariation: number }
+
+export interface SubScoreDefinition {
+  id: SubScoreId
+  /** O que este sub-score mede neste exercício especificamente (RF-305). */
+  describes: string
+  spec: SubScoreSpec
+}
+
 /** Um exercício do catálogo, com os 11 campos do RF-305. */
 export interface Exercise {
   id: string
@@ -179,11 +232,8 @@ export interface Exercise {
   difficulty: number
   metricsUsed: readonly MetricRef[]
   successCriteria: SuccessCriterion
-  scoringRules: {
-    subScores: readonly SubScoreId[]
-    /** O que cada sub-score mede neste exercício especificamente. */
-    describes: Readonly<Partial<Record<SubScoreId, string>>>
-  }
+  /** Quais sub-scores este exercício produz e como cada um é calculado (RN-01). */
+  scoringRules: { subScores: readonly SubScoreDefinition[] }
   /** O que a `coach-engine` deve observar — não é o texto do feedback. */
   feedbackFocus: readonly string[]
   advanceCondition: AdvanceCondition

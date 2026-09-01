@@ -134,6 +134,51 @@ describe('catálogo (RF-301 a RF-305)', () => {
     }
   })
 
+  it('todo sub-score declara como é calculado (RN-01)', () => {
+    // O campo `scoring_rules` do RF-305 pede "quais sub-scores esse exercício
+    // produz, E o que cada um mede". Sem a fórmula, a evaluation-scoring-engine
+    // teria que adivinhar limiares — o que a skill dela proíbe explicitamente.
+    for (const exercise of CATALOG) {
+      for (const subScore of exercise.scoringRules.subScores) {
+        expect(subScore.describes, `${exercise.id}/${subScore.id}`).toBeTruthy()
+        expect(subScore.spec, `${exercise.id}/${subScore.id}`).toBeDefined()
+        expect(subScore.spec.formula, `${exercise.id}/${subScore.id}`).toBeTruthy()
+      }
+    }
+  })
+
+  it('nenhum exercício declara o mesmo sub-score duas vezes', () => {
+    for (const exercise of CATALOG) {
+      const ids = exercise.scoringRules.subScores.map((s) => s.id)
+      expect(new Set(ids).size, exercise.id).toBe(ids.length)
+    }
+  })
+
+  it('faixas e tolerâncias das fórmulas são utilizáveis', () => {
+    // Uma faixa invertida ou tolerância zero produziria score constante,
+    // silenciosamente — o pior modo de falha possível numa fórmula de pontuação.
+    for (const exercise of CATALOG) {
+      for (const { id, spec } of exercise.scoringRules.subScores) {
+        const where = `${exercise.id}/${id}`
+        if (spec.formula === 'target_range') {
+          expect(spec.range[1], where).toBeGreaterThan(spec.range[0])
+        }
+        if (spec.formula === 'target_value') {
+          expect(spec.maxDeviation, where).toBeGreaterThan(0)
+        }
+        if (spec.formula === 'proportion') {
+          expect(spec.required, where).toBeGreaterThan(0)
+        }
+        if (spec.formula === 'correlation') {
+          expect(spec.minAbsolute, where).toBeGreaterThan(0)
+        }
+        if (spec.formula === 'consistency') {
+          expect(spec.maxCoefficientOfVariation, where).toBeGreaterThan(0)
+        }
+      }
+    }
+  })
+
   it('findExercise localiza por id e devolve undefined para desconhecido', () => {
     expect(findExercise('adv-01-trail-braking')?.level).toBe('avancado')
     expect(findExercise('nao-existe')).toBeUndefined()
