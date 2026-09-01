@@ -1,0 +1,33 @@
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Editores / IDEs
+.vscode/
+.idea/
+*.swp
+
+# Variáveis de ambiente / segredos
+.env
+.env.local
+*.local
+
+# Node.js (caso a stack escolhida use)
+node_modules/
+dist/
+build/
+
+# Python (caso a stack escolhida use)
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# .NET / C# (caso a stack escolhida use)
+bin/
+obj/
+
+# Dados locais de treino (não versionar sessões/telemetria pessoal)
+data/
+*.db
+*.sqlite
