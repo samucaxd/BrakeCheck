@@ -16,6 +16,17 @@ export interface SubScore {
   value: number | null
   /** O que este sub-score mede neste exercício (vem do catálogo). */
   describes: string
+  /**
+   * Valor bruto que originou o score — a velocidade em %/s, o tempo em ms, o
+   * coeficiente de variação.
+   *
+   * Existe para a `coach-engine`: a RN-04 exige que a observação do feedback
+   * traga o **número real da tentativa**, e o algoritmo da skill do coach §1
+   * manda puxar "o valor bruto por trás do sub-score". Carregá-lo aqui evita que
+   * o coach recalcule métricas — o que violaria a fronteira entre as camadas — e
+   * é o que impede o feedback de cair em "score baixo em X" sem o número.
+   */
+  observed: number | null
 }
 
 /** RF-401, RF-402, RF-403 — resultado de uma tentativa. */

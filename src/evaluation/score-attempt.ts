@@ -131,10 +131,20 @@ function blockCoefficientOfVariation(
   return report.byMetric[key as ConsistencyMetricKey]?.coefficientOfVariation ?? null
 }
 
-function applySpec(spec: SubScoreSpec, input: ScoreAttemptInput): number | null {
+interface AppliedSpec {
+  /** Score 0–100. */
+  value: number | null
+  /** Valor bruto que produziu o score, preservado para a `coach-engine`. */
+  observed: number | null
+}
+
+function applySpec(spec: SubScoreSpec, input: ScoreAttemptInput): AppliedSpec {
   if (spec.formula === 'consistency') {
     const cv = blockCoefficientOfVariation(spec.key, input)
-    return cv === null ? null : scoreConsistency(cv, spec.maxCoefficientOfVariation)
+    return {
+      value: cv === null ? null : scoreConsistency(cv, spec.maxCoefficientOfVariation),
+      observed: cv,
+    }
   }
 
   const value = resolveMetric(spec.metric, input)
@@ -146,27 +156,34 @@ function applySpec(spec: SubScoreSpec, input: ScoreAttemptInput): number | null 
    * de dado e, pior, faria o coach recomendar treino para uma fraqueza
    * inexistente (RN-05 depende de o perfil refletir habilidade real).
    */
-  if (value === null || !Number.isFinite(value)) return null
+  if (value === null || !Number.isFinite(value)) return { value: null, observed: null }
 
   switch (spec.formula) {
     case 'target_range':
-      return scoreTargetRange(value, spec.range)
+      return { value: scoreTargetRange(value, spec.range), observed: value }
     case 'proportion':
-      return scoreProportion(value, spec.required)
+      return { value: scoreProportion(value, spec.required), observed: value }
     case 'target_value':
-      return scoreTargetValue(value, spec.target, spec.maxDeviation)
+      return {
+        value: scoreTargetValue(value, spec.target, spec.maxDeviation),
+        observed: value,
+      }
     case 'correlation':
-      return scoreCorrelation(value, spec.minAbsolute)
+      return { value: scoreCorrelation(value, spec.minAbsolute), observed: value }
   }
 }
 
 /** RF-401 e RF-402 — sub-scores e agregado de uma tentativa. */
 export function scoreAttempt(input: ScoreAttemptInput): ScoreResult {
-  const subScores: SubScore[] = input.exercise.scoringRules.subScores.map((definition) => ({
-    id: definition.id,
-    describes: definition.describes,
-    value: applySpec(definition.spec, input),
-  }))
+  const subScores: SubScore[] = input.exercise.scoringRules.subScores.map((definition) => {
+    const applied = applySpec(definition.spec, input)
+    return {
+      id: definition.id,
+      describes: definition.describes,
+      value: applied.value,
+      observed: applied.observed,
+    }
+  })
 
   const usable = subScores
     .map((subScore) => subScore.value)

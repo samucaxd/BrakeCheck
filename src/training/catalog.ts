@@ -16,6 +16,25 @@
 import type { Exercise, Level } from './types.js'
 
 /**
+ * DIVERGÊNCIA REGISTRADA — condições de avanço × RN-03.
+ *
+ * O catálogo de `braking-training-engine` §3 especifica exigência de
+ * consistência em apenas 5 dos 16 exercícios; para os outros 11, a condição de
+ * avanço é só "3 de 5 tentativas dentro do critério".
+ *
+ * Isso contraria a RN-03 do PRD, que exige **as duas coisas, sempre**: "(a)
+ * score mínimo sustentado ao longo de múltiplas tentativas, e (b) consistência
+ * (baixa variabilidade) entre essas tentativas". Sem (b), um piloto que acerta
+ * de um jeito diferente a cada tentativa avança — que é exatamente o caso que a
+ * regra existe para barrar.
+ *
+ * Como o PRD é a fonte da verdade (`brake-check-foundations`), todos os 16
+ * exercícios receberam exigência de consistência. As métricas e os limiares dos
+ * 11 acrescentados são escolha desta implementação, não da skill, e estão entre
+ * as assunções a revisar com uso real.
+ */
+
+/**
  * NOTA DE INTERPRETAÇÃO — exercício 3.
  *
  * A skill escreve o critério como "variação de `steering` durante o evento de
@@ -145,7 +164,12 @@ const FUNDAMENTOS: Exercise[] = [
       'Se houve correção de volante perceptível durante a frenagem',
       'Em que ponto da frenagem a correção ocorreu',
     ],
-    advanceCondition: { attemptsRequired: 3, outOf: 5, consecutive: false, consistency: [] },
+    advanceCondition: {
+      attemptsRequired: 3,
+      outOf: 5,
+      consecutive: false,
+      consistency: [{ key: 'applicationSpeed', maxCoefficientOfVariation: 0.3 }],
+    },
   },
   {
     id: 'fund-04-controle-pressao',
@@ -227,7 +251,15 @@ const FUNDAMENTOS: Exercise[] = [
      * aqui não é preciso repetir o bloco: o próprio exercício já é a medida de
      * repetição.
      */
-    advanceCondition: { attemptsRequired: 5, outOf: 5, consecutive: false, consistency: [] },
+    advanceCondition: {
+      attemptsRequired: 5,
+      outOf: 5,
+      consecutive: false,
+      consistency: [
+        { key: 'applicationSpeed', maxCoefficientOfVariation: 0.15 },
+        { key: 'brakeMax', maxCoefficientOfVariation: 0.15 },
+      ],
+    },
   },
   {
     id: 'fund-06-ponto-frenagem',
@@ -303,7 +335,12 @@ const INTERMEDIARIO: Exercise[] = [
       'Se o piloto está frenando abaixo do limite (conservador)',
       'Se está ultrapassando a faixa (agressivo demais)',
     ],
-    advanceCondition: { attemptsRequired: 3, outOf: 5, consecutive: false, consistency: [] },
+    advanceCondition: {
+      attemptsRequired: 3,
+      outOf: 5,
+      consecutive: false,
+      consistency: [{ key: 'peakValue', maxCoefficientOfVariation: 0.2 }],
+    },
   },
   {
     id: 'int-02-frenagem-maxima',
@@ -329,7 +366,12 @@ const INTERMEDIARIO: Exercise[] = [
     feedbackFocus: [
       'Se o piloto hesitou antes de atingir o pico — velocidade de aplicação baixa apesar de pico alto',
     ],
-    advanceCondition: { attemptsRequired: 3, outOf: 5, consecutive: false, consistency: [] },
+    advanceCondition: {
+      attemptsRequired: 3,
+      outOf: 5,
+      consecutive: false,
+      consistency: [{ key: 'peakValue', maxCoefficientOfVariation: 0.2 }],
+    },
   },
   {
     id: 'int-03-modulacao-pedal',
@@ -362,7 +404,12 @@ const INTERMEDIARIO: Exercise[] = [
       ],
     },
     feedbackFocus: ['Em qual transição da sequência o piloto perdeu mais tempo fora da faixa'],
-    advanceCondition: { attemptsRequired: 3, outOf: 5, consecutive: false, consistency: [] },
+    advanceCondition: {
+      attemptsRequired: 3,
+      outOf: 5,
+      consecutive: false,
+      consistency: [{ key: 'brakeMax', maxCoefficientOfVariation: 0.3 }],
+    },
   },
   {
     id: 'int-04-liberacao-progressiva',
@@ -438,7 +485,12 @@ const INTERMEDIARIO: Exercise[] = [
       ],
     },
     feedbackFocus: ['Em que fase da frenagem — início, meio ou fim — o desvio do perfil foi maior'],
-    advanceCondition: { attemptsRequired: 3, outOf: 5, consecutive: false, consistency: [] },
+    advanceCondition: {
+      attemptsRequired: 3,
+      outOf: 5,
+      consecutive: false,
+      consistency: [{ key: 'releaseSpeed', maxCoefficientOfVariation: 0.3 }],
+    },
   },
 ]
 
@@ -480,7 +532,12 @@ const AVANCADO: Exercise[] = [
       'Se o piloto solta o freio totalmente antes de esterçar (overlap zero)',
       'Se esterça antes de começar a soltar (ordem invertida)',
     ],
-    advanceCondition: { attemptsRequired: 3, outOf: 5, consecutive: false, consistency: [] },
+    advanceCondition: {
+      attemptsRequired: 3,
+      outOf: 5,
+      consecutive: false,
+      consistency: [{ key: 'releaseSpeed', maxCoefficientOfVariation: 0.3 }],
+    },
   },
   {
     id: 'adv-02-brake-release',
@@ -508,7 +565,12 @@ const AVANCADO: Exercise[] = [
     feedbackFocus: [
       'Se a presença de esterçamento simultâneo piora a suavidade da liberação em relação ao exercício de liberação em linha reta',
     ],
-    advanceCondition: { attemptsRequired: 3, outOf: 5, consecutive: false, consistency: [] },
+    advanceCondition: {
+      attemptsRequired: 3,
+      outOf: 5,
+      consecutive: false,
+      consistency: [{ key: 'releaseSpeed', maxCoefficientOfVariation: 0.3 }],
+    },
   },
   {
     id: 'adv-03-transferencia-peso',
@@ -544,7 +606,12 @@ const AVANCADO: Exercise[] = [
       ],
     },
     feedbackFocus: ['Se o piloto está esterçando antes do carro assentar — intervalo curto demais'],
-    advanceCondition: { attemptsRequired: 3, outOf: 5, consecutive: false, consistency: [] },
+    advanceCondition: {
+      attemptsRequired: 3,
+      outOf: 5,
+      consecutive: false,
+      consistency: [{ key: 'applicationSpeed', maxCoefficientOfVariation: 0.3 }],
+    },
   },
   {
     id: 'adv-04-frenagem-rotacao',
@@ -586,7 +653,12 @@ const AVANCADO: Exercise[] = [
     feedbackFocus: [
       'Se o piloto mantém freio residual constante independente do ângulo, em vez de reduzir proporcionalmente',
     ],
-    advanceCondition: { attemptsRequired: 3, outOf: 5, consecutive: false, consistency: [] },
+    advanceCondition: {
+      attemptsRequired: 3,
+      outOf: 5,
+      consecutive: false,
+      consistency: [{ key: 'releaseSpeed', maxCoefficientOfVariation: 0.3 }],
+    },
   },
   {
     id: 'adv-05-combinacao-completa',
@@ -642,7 +714,12 @@ const AVANCADO: Exercise[] = [
     feedbackFocus: [
       'Qual das três fases — frenagem, trail braking ou retomada — está mais fraca nesta tentativa',
     ],
-    advanceCondition: { attemptsRequired: 3, outOf: 5, consecutive: false, consistency: [] },
+    advanceCondition: {
+      attemptsRequired: 3,
+      outOf: 5,
+      consecutive: false,
+      consistency: [{ key: 'releaseSpeed', maxCoefficientOfVariation: 0.3 }],
+    },
   },
 ]
 

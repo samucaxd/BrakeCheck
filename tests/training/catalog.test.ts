@@ -68,6 +68,20 @@ describe('catálogo (RF-301 a RF-305)', () => {
     }
   })
 
+  it('RN-03: toda condição de avanço exige consistência, sem exceção', () => {
+    // A RN-03 pede as DUAS coisas: "(a) score mínimo sustentado ao longo de
+    // múltiplas tentativas, E (b) consistência (baixa variabilidade)". Um
+    // exercício que exige só repetição de acertos deixa passar o piloto que
+    // acerta de um jeito diferente a cada vez — que é literalmente o caso que a
+    // regra existe para barrar.
+    for (const exercise of CATALOG) {
+      expect(
+        exercise.advanceCondition.consistency.length,
+        `${exercise.id} não exige consistência`,
+      ).toBeGreaterThan(0)
+    }
+  })
+
   it('RF-302: Fundamentos cobre as técnicas exigidas', () => {
     const techniques = exercisesForLevel('fundamentos').map((e) => e.technique).join(' ')
     for (const expected of [

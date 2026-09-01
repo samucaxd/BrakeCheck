@@ -20,7 +20,7 @@ function result(exerciseId: string, value: number, subScoreId = 'aplicacao_inici
   return {
     attemptRef: `${exerciseId}-a1`,
     exerciseId,
-    subScores: [{ id: subScoreId as never, value, describes: 'teste' }],
+    subScores: [{ id: subScoreId as never, value, describes: 'teste', observed: value }],
     totalScore: value,
     level: 'gold',
   }
@@ -84,8 +84,8 @@ describe('computeDimensions (RF-404)', () => {
       attemptRef: 'x',
       exerciseId: 'fund-01-controle-pedal',
       subScores: [
-        { id: 'controle_pressao', value: 90, describes: '' },
-        { id: 'aplicacao_inicial', value: null, describes: '' },
+        { id: 'controle_pressao', value: 90, describes: '', observed: 90 },
+        { id: 'aplicacao_inicial', value: null, describes: '', observed: null },
       ],
       totalScore: 90,
       level: 'master',
