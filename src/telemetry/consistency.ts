@@ -22,6 +22,10 @@ export type ConsistencyMetricKey =
   | 'releaseSpeed'
   | 'peakValue'
   | 'timeToPeak'
+  /** Máximo do canal `brake` na tentativa — distinto de `peakValue`, que é a média dos picos de evento. */
+  | 'brakeMax'
+  /** Tempo dentro da faixa de pressão do exercício. Exigido pelas condições de avanço dos exercícios 1 e 4. */
+  | 'timeInPressureRange'
 
 export const DEFAULT_CONSISTENCY_KEYS: readonly ConsistencyMetricKey[] = [
   'applicationSpeed',
@@ -56,6 +60,8 @@ const SELECTORS: Record<ConsistencyMetricKey, (m: DerivedMetrics) => number | nu
   releaseSpeed: (m) => m.brakingAggregate.releaseSpeedPctPerS,
   peakValue: (m) => m.brakingAggregate.peakValue,
   timeToPeak: (m) => m.brakingAggregate.timeToPeakMs,
+  brakeMax: (m) => m.brake.max,
+  timeInPressureRange: (m) => m.timeInPressureRange?.durationMs ?? null,
 }
 
 /**

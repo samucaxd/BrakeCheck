@@ -16,6 +16,7 @@ import {
 } from '../config/provisional.js'
 import type { TelemetrySample } from '../shared/contracts.js'
 import { BrakingEventDetector } from './braking-events.js'
+import { IntervalAccumulator } from './intervals.js'
 import type {
   AttemptTelemetry,
   BrakingAggregate,
@@ -74,8 +75,8 @@ export class AttemptRecorder {
   #firstTimestamp: number | null = null
   #lastSample: TelemetrySample | null = null
   #sampleCount = 0
-  #pressureRangeMs = 0
-  #overlapMs = 0
+  #pressureRange = new IntervalAccumulator()
+  #overlap = new IntervalAccumulator()
   #finished = false
 
   constructor(options: AttemptRecorderOptions) {
@@ -112,32 +113,27 @@ export class AttemptRecorder {
   }
 
   /**
-   * Acumula as métricas que são medidas em **intervalo**, não em ponto
-   * (RF-206 e RF-208).
-   *
-   * O Δt entre duas amostras é creditado ao estado da amostra **anterior**, que
-   * é o que se sabe ter valido durante aquele intervalo. Atribuir ao estado
-   * seguinte contaria como "dentro da faixa" um trecho em que o pedal ainda não
-   * tinha chegado lá.
+   * Acumula as métricas medidas em **intervalo**, não em ponto (RF-206, RF-208).
+   * A convenção de qual amostra recebe o crédito do Δt vive em `intervals.ts`.
    */
   #accumulateIntervals(sample: TelemetrySample): void {
     const previous = this.#lastSample
     if (previous === null) return
 
-    const deltaMs = sample.timestamp - previous.timestamp
-    if (!(deltaMs > 0)) return
-
     const band = this.#options.pressureBand
-    if (band && previous.brake >= band[0] && previous.brake <= band[1]) {
-      this.#pressureRangeMs += deltaMs
+    if (band) {
+      this.#pressureRange.step(
+        previous,
+        sample,
+        (s) => s.brake >= band[0] && s.brake <= band[1],
+      )
     }
 
-    if (
-      previous.brake > this.#brakeThreshold &&
-      previous.throttle > this.#throttleThreshold
-    ) {
-      this.#overlapMs += deltaMs
-    }
+    this.#overlap.step(
+      previous,
+      sample,
+      (s) => s.brake > this.#brakeThreshold && s.throttle > this.#throttleThreshold,
+    )
   }
 
   /**
@@ -170,11 +166,12 @@ export class AttemptRecorder {
         brakingEvents: events,
         brakingAggregate: aggregate(events),
         timeInPressureRange: this.#options.pressureBand
-          ? { band: this.#options.pressureBand, durationMs: this.#pressureRangeMs }
+          ? { band: this.#options.pressureBand, durationMs: this.#pressureRange.totalMs }
           : null,
         overlap: {
-          durationMs: this.#overlapMs,
-          pctOfDuration: durationMs > 0 ? (this.#overlapMs / durationMs) * 100 : null,
+          durationMs: this.#overlap.totalMs,
+          pctOfDuration:
+            durationMs > 0 ? (this.#overlap.totalMs / durationMs) * 100 : null,
         },
       } satisfies DerivedMetrics,
     }

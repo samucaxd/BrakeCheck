@@ -92,6 +92,29 @@ export const BRAKE_EVENT_THRESHOLD_PERCENT = 5
 export const THROTTLE_OVERLAP_THRESHOLD_PERCENT = 5
 
 /**
+ * |steering| (%) a partir do qual se considera que o piloto está esterçando.
+ *
+ * Necessário para o overlap freio×volante do trail braking (exercício 12) e não
+ * consta da lista de assunções de `braking-training-engine` §6 — foi preciso
+ * escolher um valor para o critério ser avaliável. 5% espelha o limiar dos
+ * outros canais e fica acima da deadzone default.
+ */
+export const STEERING_ACTIVE_THRESHOLD_PERCENT = 5
+
+/**
+ * |steering| (%) que caracteriza "esterçamento acentuado", usado no intervalo de
+ * estabilização do exercício 14. Também não consta da §6 da skill; 20% é um
+ * ponto de partida que separa correção fina de entrada de curva de verdade.
+ */
+export const STEERING_PRONOUNCED_THRESHOLD_PERCENT = 20
+
+/** Tentativas por bloco de exercício (`braking-training-engine` §2 e §6). */
+export const ATTEMPTS_PER_BLOCK = 5
+
+/** Duração da contagem regressiva antes da primeira tentativa (idem). */
+export const COUNTDOWN_SECONDS = 3
+
+/**
  * Direção que a escala de steering trata como positiva.
  *
  * DESCOBERTA NA LEITURA DA LIB (não estava explícito na skill): o evento
