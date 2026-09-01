@@ -17,7 +17,7 @@ Software pessoal de treinamento de pilotagem para simuladores de corrida (foco i
 |---|---|---|
 | Device Layer | RF-101 a RF-105, RF-109 | Implementada — ⚠️ não validada em hardware |
 | Input Processing | RF-106 a RF-108 | Implementada e testada |
-| Telemetry Engine | RF-2xx | Não iniciada |
+| Telemetry Engine | RF-201 a RF-210 | Implementada e testada |
 | Training Engine | RF-3xx | Não iniciada |
 | Evaluation Engine | RF-4xx | Não iniciada |
 | Coach Engine | RF-5xx | Não iniciada |

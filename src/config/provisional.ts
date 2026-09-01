@@ -77,6 +77,21 @@ export const DEFAULT_DEADZONE_PERCENT = 2
 export const WHEEL_RANGE_DEGREES = 900
 
 /**
+ * Limiar de `brake` (%) que marca início e fim de um evento de frenagem.
+ *
+ * `telemetry-engine` §6 propõe 5%, deliberadamente acima da deadzone default de
+ * 2%: abaixo disso o que sobra é ruído residual, e tratá-lo como início de
+ * frenagem produziria eventos fantasma. Ajustável por exercício.
+ */
+export const BRAKE_EVENT_THRESHOLD_PERCENT = 5
+
+/**
+ * Limiar de `throttle` (%) usado na detecção de overlap brake×throttle
+ * (RF-208). `telemetry-engine` §6 propõe o mesmo 5%.
+ */
+export const THROTTLE_OVERLAP_THRESHOLD_PERCENT = 5
+
+/**
  * Direção que a escala de steering trata como positiva.
  *
  * DESCOBERTA NA LEITURA DA LIB (não estava explícito na skill): o evento
