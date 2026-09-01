@@ -1,0 +1,25 @@
+{
+  "name": "brake-check",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Software pessoal de treinamento de frenagem para simuladores de corrida (Logitech G29)",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "probe:g29": "tsx tools/probe-g29.ts"
+  },
+  "optionalDependencies": {
+    "logitech-g29": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
