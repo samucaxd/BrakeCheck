@@ -36,10 +36,57 @@ function fmt(n: number, digits = 1): string {
   return n.toFixed(digits).padStart(6)
 }
 
+/**
+ * Confere se os módulos nativos carregam, ANTES de falar em hardware.
+ *
+ * Sem esta checagem, uma falha de compilação do `node-hid` apareceria como
+ * "nenhum G29 encontrado" — mandando o usuário procurar problema na chave de
+ * modo e no G HUB quando o problema real é a instalação. São diagnósticos
+ * completamente diferentes e não podem compartilhar a mesma mensagem.
+ */
+async function preflight(): Promise<boolean> {
+  let ok = true
+
+  try {
+    await import('node-hid')
+    console.log('   node-hid ............. OK')
+  } catch (err) {
+    ok = false
+    console.log('   node-hid ............. FALHOU')
+    console.log(`     ${err instanceof Error ? err.message : String(err)}`)
+    console.log('     É um módulo nativo. No Windows costuma faltar o Visual Studio')
+    console.log('     Build Tools (workload "Desktop development with C++").')
+  }
+
+  try {
+    await import('logitech-g29')
+    console.log('   logitech-g29 ......... OK')
+  } catch (err) {
+    ok = false
+    console.log('   logitech-g29 ......... FALHOU')
+    console.log(`     ${err instanceof Error ? err.message : String(err)}`)
+    console.log('     Está como optionalDependency, então `npm install` não falha')
+    console.log('     se ele não instalar — só some em silêncio. Rode:')
+    console.log('       npm install logitech-g29 --force')
+  }
+
+  return ok
+}
+
 async function main(): Promise<void> {
   const source = new G29DeviceSource()
 
   console.log('=== Brake Check — probe do G29 ===\n')
+
+  console.log('0) Módulos nativos carregam?')
+  if (!(await preflight())) {
+    console.log('\n   Pare aqui: sem esses módulos nada do resto significa nada.')
+    console.log('   O que vier depois seria diagnóstico de hardware para um problema')
+    console.log('   que é de instalação.')
+    process.exitCode = 1
+    return
+  }
+  console.log()
   console.log('Inputs que a lib expõe (RF-102):')
   for (const input of source.describeInputs()) {
     const mark = input.consumedInV1 ? '[V1]' : '[  ]'
