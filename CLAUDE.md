@@ -8,6 +8,16 @@ Brake Check é um software pessoal de treinamento de pilotagem para simuladores 
 
 Uso pessoal e exclusivo do dono do repositório. Não é um produto para distribuição.
 
+## Continuando o desenvolvimento? Comece por aqui
+
+**Leia `docs/ESTADO-DO-PROJETO.md` antes de qualquer coisa.** Ele diz em que
+ponto o projeto está, o que está bloqueado, quais decisões foram tomadas e por
+quê, e quais divergências entre as skills e o PRD já foram encontradas. O código
+conta o *o quê*; aquele arquivo conta o *porquê* e o *o que falta*.
+
+Sem ele, uma sessão nova refaz análise já feita — ou pior, reverte uma decisão
+sem saber que ela foi deliberada.
+
 ## Documento fonte da verdade
 
 **Antes de implementar qualquer módulo, leia `docs/prd/brake-check-prd.md` por completo.** Esse PRD contém:
